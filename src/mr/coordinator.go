@@ -71,8 +71,8 @@ func (c *Coordinator) ToNextCoor() {
 
 // 标记任务完成
 func (c *Coordinator) TaskIsDone(args *Task, reply *Task) error {
-	mu.Lock()
-	defer mu.Unlock()
+	// mu.Lock()
+	// defer mu.Unlock()
 	switch args.TaskType {
 	case MapType:
 		if meta, ok := c.taskMetaHolder.TaskMetaMap[args.TaskId]; ok && meta.Condition == WorkingTask {
@@ -107,7 +107,7 @@ func (j *TaskMetaHolder) CheckTaskDone() bool {
 // 检查任务是否超时
 func (c *Coordinator) CheckTaskTimeout() {
 	for {
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second)
 		mu.Lock()
 		if c.CoCondition == AllDone {
 			mu.Unlock()
@@ -116,6 +116,11 @@ func (c *Coordinator) CheckTaskTimeout() {
 
 		timeNow := time.Now()
 		for _, v := range c.taskMetaHolder.TaskMetaMap {
+			// 打印任务执行时间
+			if v.Condition == WorkingTask {
+				fmt.Println("Task Running -- ", v.TaskAddr.TaskId, timeNow.Sub(v.StartTime))
+			}
+			// 超时10s
 			if v.Condition == WorkingTask && timeNow.Sub(v.StartTime) > time.Second*10 {
 				fmt.Println("Task Timeout -- ", v.TaskAddr.TaskId)
 				switch v.TaskAddr.TaskType {
