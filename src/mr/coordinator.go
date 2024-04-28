@@ -15,8 +15,8 @@ var mu sync.Mutex
 
 // 拉取任务
 func (c *Coordinator) PullTask(args *TaskArgs, reply *Task) error {
-	mu.Lock()
-	defer mu.Unlock()
+	// mu.Lock()
+	// defer mu.Unlock()
 	if c.CoCondition == MapCoor {
 		if len(c.MapChan) > 0 {
 			*reply = *<-c.MapChan
@@ -172,11 +172,11 @@ func (c *Coordinator) PushMapTasks(files []string) {
 // 将任务放入 ReduceChan
 func (c *Coordinator) PushReduceTasks() {
 	for i := 0; i < c.NReduce; i++ {
-		// id := i + len(c.Files)
+		id := i + len(c.Files)
 		task := Task{
 			TaskType:  ReduceType,
 			FilesName: selectReduceFiles(i),
-			TaskId:    i,
+			TaskId:    id,
 		}
 		taskMetaInfo := TaskMetaInfo{
 			Condition: WaitTask,
