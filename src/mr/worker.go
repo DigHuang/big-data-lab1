@@ -16,7 +16,7 @@ func GetTask() *Task {
 	reply := &Task{}
 
 	if ok := call("Coordinator.PullTask", args, reply); ok {
-		fmt.Println("GetTask success! -- ", reply.TaskId)
+		fmt.Println("GetTask success! -- ", reply.TaskId, reply.TaskType)
 	} else {
 		fmt.Println("GetTask failed!")
 	}
