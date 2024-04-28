@@ -104,6 +104,38 @@ func (j *TaskMetaHolder) CheckTaskDone() bool {
 	return true
 }
 
+// 检查任务是否超时
+func (c *Coordinator) CheckTaskTimeout() {
+	for {
+		time.Sleep(time.Second * 2)
+		mu.Lock()
+		if c.CoCondition == AllDone {
+			mu.Unlock()
+			break
+		}
+
+		timeNow := time.Now()
+		for _, v := range c.taskMetaHolder.TaskMetaMap {
+			if v.Condition == WorkingTask && timeNow.Sub(v.StartTime) > time.Second*10 {
+				fmt.Println("Task Timeout -- ", v.TaskAddr.TaskId)
+				switch v.TaskAddr.TaskType {
+				case MapType:
+					{
+						c.MapChan <- v.TaskAddr
+						v.Condition = WaitTask
+					}
+				case ReduceType:
+					{
+						c.ReduceChan <- v.TaskAddr
+						v.Condition = WaitTask
+					}
+				}
+			}
+		}
+		mu.Unlock()
+	}
+}
+
 // 检查任务是否可以放入
 func (j *TaskMetaHolder) PushTasks(taskInfo *TaskMetaInfo) bool {
 	taskId := taskInfo.TaskAddr.TaskId
@@ -200,5 +232,8 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 
 	// 启动 RPC 服务
 	c.server()
+
+	// 检查任务是否超时
+	go c.CheckTaskTimeout()
 	return &c
 }
