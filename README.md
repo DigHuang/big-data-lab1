@@ -13,6 +13,8 @@ go build -buildmode=plugin ../mrapps/wc.go
 
 # Run the coordinator
 go run mrcoordinator.go pg*.txt
+# Run in race mode
+go run -race mrcoordinator.go pg*.txt
 
 # Run the workers
 go run mrworker.go wc.so

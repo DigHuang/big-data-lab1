@@ -15,8 +15,8 @@ var mu sync.Mutex
 
 // 拉取任务
 func (c *Coordinator) PullTask(args *TaskArgs, reply *Task) error {
-	// mu.Lock()
-	// defer mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	if c.CoCondition == MapCoor {
 		if len(c.MapChan) > 0 {
 			*reply = *<-c.MapChan
@@ -71,8 +71,8 @@ func (c *Coordinator) ToNextCoor() {
 
 // 标记任务完成
 func (c *Coordinator) TaskIsDone(args *Task, reply *Task) error {
-	// mu.Lock()
-	// defer mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	switch args.TaskType {
 	case MapType:
 		if meta, ok := c.taskMetaHolder.TaskMetaMap[args.TaskId]; ok && meta.Condition == WorkingTask {
@@ -212,6 +212,8 @@ func (c *Coordinator) server() {
 // main/mrcoordinator.go calls Done() periodically to find out
 // if the entire job has finished.
 func (c *Coordinator) Done() bool {
+	mu.Lock()
+	defer mu.Unlock()
 	ret := false
 	ret = c.CoCondition == AllDone
 	return ret
